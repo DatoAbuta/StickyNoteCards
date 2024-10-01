@@ -55,25 +55,43 @@ export default function Home() {
     localStorage.setItem("notes", JSON.stringify(newCards));
   };
 
-const handleDownloadAll = () => {
-  if (cards.length === 0) {
-    toast.error("No cards to download!");
-    return;
-  }
+  // New function to download specific card data
+  const handleDownloadCard = (cardIndex: number) => {
+    const card = cards[cardIndex];
 
-  const allCardsContent = cards.map((card, index) => {
-    if (card.texts.length === 0) {
-      return `Card ${index + 1}: \n  Empty\n`;
+    if (!card) {
+      toast.error("Card not found!");
+      return;
     }
 
-    return `Card ${index + 1}: \n` +
-      card.texts.map((t, i) => `  Text ${i + 1}: ${t.text.trim() === "" ? 'Empty' : t.text} (Completed: ${t.completed})\n`).join("");
-  }).join("\n");
+    const cardContent = `Card ${cardIndex + 1}:\n` +
+      (card.texts.length === 0 
+        ? "  Empty\n" 
+        : card.texts.map((t, i) => `  Text ${i + 1}: ${t.text.trim() === "" ? 'Empty' : t.text} (Completed: ${t.completed})\n`).join("")
+      );
 
-  const blob = new Blob([allCardsContent], { type: "application/json" });
-  saveAs(blob, `cards.txt`);
-};
+    const blob = new Blob([cardContent], { type: "text/plain" });
+    saveAs(blob, `card-${cardIndex + 1}.txt`);
+  };
 
+  const handleDownloadAll = () => {
+    if (cards.length === 0) {
+      toast.error("No cards to download!");
+      return;
+    }
+
+    const allCardsContent = cards.map((card, index) => {
+      if (card.texts.length === 0) {
+        return `Card ${index + 1}: \n  Empty\n`;
+      }
+
+      return `Card ${index + 1}: \n` +
+        card.texts.map((t, i) => `  Text ${i + 1}: ${t.text.trim() === "" ? 'Empty' : t.text} (Completed: ${t.completed})\n`).join("");
+    }).join("\n");
+
+    const blob = new Blob([allCardsContent], { type: "text/plain" });
+    saveAs(blob, `cards.txt`);
+  };
 
   const handleDelete = (cardIndex: number, textIndex?: number) => {
     if (textIndex === undefined) {
@@ -198,7 +216,7 @@ const handleDownloadAll = () => {
                             src={DownloadBtn}
                             alt="Download Button"
                             className="w-5 h-5 cursor-pointer"
-                            onClick={() => handleDownloadAll()} // Download all cards
+                            onClick={() => handleDownloadCard(index)} // Download specific card
                           />
                         </div>
                         <FormComponent
@@ -251,7 +269,7 @@ const handleDownloadAll = () => {
         opened={opened}
         onClick={handleClick}
         spin={spin}
-        onDownloadAll={handleDownloadAll} // Pass the new download function
+        onDownloadAll={handleDownloadAll} // Pass the download all function
       />
     </div>
   );
